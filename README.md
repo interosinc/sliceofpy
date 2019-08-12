@@ -1,0 +1,263 @@
+# slice-of-py
+
+![Slice Of Py](https://github.com/Interosinc/sliceofpy/blob/master/misc/sliceofpy.png?raw=true "Slice of Py")
+
+> "So the pie isn't perfect? Cut it into wedges. Stay in control, and never panic."
+> - Martha Stewart
+
+Bidirectional Python-ish slicing traversals for Haskell.
+
+Many thanks to Chris Penner who did all of the heavy lifting in creating the
+actual traversals.
+
+## Introduction
+
+This package provides traversals that allow addressing any `Traversable` using
+python style slicing.
+
+The cliff notes:
+
+```haskell
+"Slice of Py" ^.. sliced [s|2:5|]        -- sliced + slice quasiquote
+  == "ice"
+
+"Slice of Py" ^.. [sd|2:5|]              -- sliced quasiquote
+  == "ice"
+
+"Slice of Py" ^.. sliced "2:5"           -- sliced + slice string
+  == "ice"
+
+"Slice of Py" & partsOf [sd|2::2|] %~ reverse
+  == "Slyc  ofePi"
+
+"Slice of Pi" & [sd|:5|] %~ toUpper
+  == "SLICE of Pi"
+
+[1..10] ^.. [sd|3::3|]
+  == [4,7,10]
+
+[1..10] ^.. [sd|::-1|]
+  == [10,9,8,7,6,5,4,3,2,1]
+```
+
+Fundamentally Python slices are captured by the Haskell data type `(Maybe Int,
+Maybe Int, Maybe Int)`.  As such you can use this type directly as a slice but
+writing out slices like `(Just 3, Nothing, Just (-1))` is fairly cumbersome so
+we also provide the `Slice` class to treat other types as slices and provide
+implementations for `(Int, Int Int)` as well as Strings (eg. `"1:10:2"`).
+
+The `String` instance is convenient for use in ghci or small projects but lacks
+type safety of course.  If you provide a String that is not parseable into a
+valid slice it won't be caught until runtime.  Likewise a step size of zero,
+which is an error, will not be caught until runtime.
+
+To provide a type-safe middle ground between the more cumbersome tuple syntax
+and the simpler string syntax we also provide an `s` quasiquoter (shown above)
+that allows writing slices as `[s|1:2:3|]` as well as an `sd` quasiquoter that
+fills in the `sliced` lens for you allowing eg `foo ^.. sliced ":5"` to be
+written as `foo ^.. [sd|:5|]`.
+
+With the quasiquoted versions anything that doesn't parse
+as a valid slice (including step sizes of zero) will be caught at runtime.
+
+In addition to the `sliced` function and the `sd` quasiquoter there are also
+the `isliced` function and the `isd` quasiquoter which provide
+`IndexedTraversal`s.
+
+## Differences from Python
+
+### Slice Indices
+
+Many slice operations will work identically to their python counterparts, eg:
+
+| Python                                              | Haskell                                             |
+|-----------------------------------------------------|-----------------------------------------------------|
+| >>> "Slice of Py"[::]<br> "Slice of Py"             | λ "Slice of Py" ^.. sliced "::"<br> "Slice of Py"   |
+| >>> "Slice of Py"[:3]<br> "Sli"                     | λ "Slice of Py" ^.. sliced ":3"<br> "Sli"           |
+| >>> "Slice of Py"[3:]<br> "ce of Py"                | λ "Slice of Py" ^.. sliced "3:"<br> "ce of Py"      |
+| >>> "Slice of Py"[::2]<br> "Sieo y"                 | λ "Slice of Py" ^.. sliced "::2"<br> "Sieo y"       |
+| >>> "Slice of Py"[::-1]<br> "yP fo ecilS"           | λ "Slice of Py" ^.. sliced "::-1"<br> "yP fo ecilS" |
+| >>> "Slice of Py"[::-2]<br> "y oeiS"                | λ "Slice of Py" ^.. sliced "::-2"<br> "y oeiS"      |
+| >>> "Slice of Py"[2:-2]<br> "ice of"                | λ "Slice of Py" ^.. sliced "2:-2"<br> "ice of"      |
+| >>> "Slice of Py"[1:2]<br> "l"                      | λ "Slice of Py" ^.. sliced "1:2"<br> "l"            |
+| >>> "Slice of Py"[2:1]<br> ""                       | λ "Slice of Py" ^.. sliced "2:1"<br> ""             |
+| >>> "Slice of Py"[1:-1]<br> "lice of P"             | λ "Slice of Py" ^.. sliced "1:-1"<br> "lice of P"   |
+| >>> "Slice of Py"[1:2:-1]<br> ""                    | λ "Slice of Py" ^.. sliced "1:2:-1"<br> ""          |
+| >>> "Slice of Py"[11::-2]<br> "y oeiS"              | λ "Slice of Py" ^.. sliced "11::-2"<br> "y oeiS"    |
+| >>> "Slice of Py"[0:9]<br> "Slice of"               | λ "Slice of Py" ^.. sliced "0:9"<br> "Slice of"     |
+| >>> "Slice of Py"[0:10]<br> "Slice of P"            | λ "Slice of Py" ^.. sliced "0:10"<br> "Slice of P"  |
+| >>> "Slice of Py"[0:11]<br> "Slice of Py"           | λ "Slice of Py" ^.. sliced "0:11"<br> "Slice of Py" |
+| >>> "Slice of Py"[0:12]<br> "Slice of Py"           | λ "Slice of Py" ^.. sliced "0:12"<br> "Slice of Py" |
+
+But some things work differently:
+
+| Python                                                 | Haskell                                                |
+|--------------------------------------------------------|--------------------------------------------------------|
+| >>> "Slice of Py"[2:1:-1]<br> "i"                      | λ "Slice of Py" ^.. sliced "2:1:-1"<br> "l"            |
+| >>> "Slice of Py"[2::-1]<br> "ilS"                     | λ "Slice of Py" ^.. sliced "2::-1"<br> "lS"            |
+| >>> "Slice of Py"[2::-2]<br> "iS"                      | λ "Slice of Py" ^.. sliced "2::-2"<br> "l"             |
+| >>> "Slice of Py"[10::-2]<br> "y oeiS"                 | λ "Slice of Py" ^.. sliced "10::-2"<br> "Pf cl"        |
+| >>> "Slice of Py"[12:0:-1]<br> "yP fo ecil"            | λ "Slice of Py" ^.. sliced "12:0:-1"<br> "yP fo ecilS" |
+| >>> "Slice of Py"[11:0:-1]<br> "yP fo ecil"            | λ "Slice of Py" ^.. sliced "11:0:-1"<br> "yP fo ecilS" |
+| >>> "Slice of Py"[10:0:-1]<br> "yP fo ecil"            | λ "Slice of Py" ^.. sliced "10:0:-1"<br> "P fo ecilS"  |
+| >>> "Slice of Py"[9:0:-1]<br> "P fo ecil"              | λ "Slice of Py" ^.. sliced "9:0:-1"<br> "fo ecilS"     |
+
+As you can see, python slice notation gets awkward in certain edge cases as
+described in [this stackoverflow
+answer](https://stackoverflow.com/questions/509211/understanding-slice-notation)
+whereas `sliced` uses a more consistent notation that lets you accomplish the
+same thing as `::-1` while specifying all indices.
+
+In addition since `sliced` is written in terms of `Traversable` you get slicing
+for free on any `Traversable` type rather than having to implement
+slice-specific interface like python's `__getitem__`.
+
+Python supports assignment to some types, eg lists:
+
+```python
+>>> xs = [1,2,3,4,5]
+>>> xs[:2] = [10,20]
+>>> xs
+[10, 20, 3, 4, 5]
+```
+
+But not all, eg strings:
+
+```python
+>>> s = "Slice of Pi"
+>>> s[:5] = "Piece"
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'str' object does not support item assignment
+```
+
+Since `sliced` is a `Traversal` you can use the full power of the `lens`
+library with it including replacing parts of lists:
+
+```haskell
+[1..5] & partsOf [sd|:2|] .~ [10,20]
+  == [10,20,3,4,5]
+
+"Slice of Py" & partsOf [sd|9:3:-2|] .~ ['A'..]
+  == "SlicC BfAPy"
+```
+
+but also strings (or any other `Traversable`):
+
+```haskell
+"Slice of Py" & partsOf [sd|:5|] .~ "Piece"
+  == "Piece of Py"
+
+"Slice of Py" & partsOf [sd|5::-1|] .~ repeat 'X'
+  == "XXXXX of Py"
+
+let t = unfoldTree (\n -> (n, replicate n (n-1))) 3
+putStr . drawTree . fmap show $ tree
+
+3
+|
++- 2
+|  |
+|  +- 1
+|  |  |
+|  |  `- 0
+|  |
+|  `- 1
+|     |
+|     `- 0
+|
++- 2
+|  |
+|  +- 1
+|  |  |
+|  |  `- 0
+|  |
+|  `- 1
+|     |
+|     `- 0
+|
+`- 2
+   |
+   +- 1
+   |  |
+   |  `- 0
+   |
+   `- 1
+      |
+      `- 0
+
+putStr . drawTree . fmap show $ (tree & [sd|2:5|] .~ 100)
+
+3
+|
++- 2
+|  |
+|  +- 100
+|  |  |
+|  |  `- 100
+|  |
+|  `- 100
+|     |
+|     `- 0
+|
++- 2
+|  |
+|  +- 1
+|  |  |
+|  |  `- 0
+|  |
+|  `- 1
+|     |
+|     `- 0
+|
+`- 2
+   |
+   +- 1
+   |  |
+   |  `- 0
+   |
+   `- 1
+      |
+      `- 0
+```
+
+and in addition to assignment/replacement you can of course use all of usual
+suspects like `over` (`%~`) or the various lens helpers:
+
+``` haskell
+λ> [1..10] & [sd|2:6|] %~ negate
+[1,2,-3,-4,-5,-6,7,8,9,10]
+
+λ> [1..10] & [sd|2:6|] *~ 10
+[1,2,30,40,50,60,7,8,9,10]
+
+λ> "Slice of Py" & [sd|:5|] %~ toUpper
+"SLICE of Py"
+
+λ> "Slice of Py" & partsOf [sd|::2|] %~ reverse
+"yl co efiPS"
+```
+
+and of course you can chain on additional lens operations:
+
+```haskell
+[1..10] & [sd|2:6|] . filtered even *~ 10
+  == [1,2,3,40,5,60,7,8,9,10]
+
+[1..10] ^.. droppingWhile (<5) [sd|3:7|]
+  == [5,6,7]
+
+"Slice of Py" ^.. worded . [sd|:1|]
+  == "SoP"
+
+productOf [sd|2:5|] [1..10]
+  == 60
+```
+
+## TODOs
+
+* Documentation
+  - three (Maybe Int) param function (sliced') -- TODO: three direct int version?
+  - better explain indexing differences with python
+* Figure out how to deploy to hackage (see http://hackage.haskell.org/upload).
+* Find/fix TODOs

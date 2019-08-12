@@ -1,0 +1,8 @@
+resolver: lts-13.29
+
+packages:
+- .
+
+extra-deps:
+- hedgehog-1.0@sha256:440dafedac48a34eac3871f8622b215462cfc0708536cb0458b7a8cf38247c69
+- tasty-hedgehog-1.0.0.1@sha256:cdcf60a29195bd0d819d3018c11db2e0deb7c6e559ad940c49409a5a7a982f83

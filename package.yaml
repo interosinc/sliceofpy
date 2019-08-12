@@ -1,0 +1,61 @@
+name:                sliceofpy
+version:             0.1.0.0
+github:              "interosinc/sliceofpy"
+license:             BSD3
+author:              "John Evans"
+maintainer:          "jevans@interos.net"
+copyright:           "2019 Interos, Inc."
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+synopsis:            Python-ish slicing traversals for Haskell.
+category:            Data, Lenses
+
+description:         README at <https://github.com/interosinc/sliceofpy#readme>
+
+dependencies:
+- base           >= 4.7 && < 5
+- bytestring
+- lens
+- process
+- split
+- template-haskell
+- text
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -Wall
+
+executables:
+  gen-sliceofpy-examples:
+    main: Main.hs
+    source-dirs: misc
+    ghc-options:
+    - -Wall
+    - -Werror
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base
+    - turtle
+    - sliceofpy
+
+tests:
+  sliceofpy-test:
+    main:                Main.hs
+    source-dirs:         test
+    ghc-options:
+    - -Wall
+    - -Werror
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - containers
+    - sliceofpy
+    - tasty
+    - tasty-hspec
