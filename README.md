@@ -7,8 +7,8 @@
 
 Bidirectional Python-ish slicing traversals for Haskell.
 
-Many thanks to Chris Penner who did all of the heavy lifting in creating the
-actual traversals.
+Many thanks to [Chris Penner](https://github.com/chrispenner) who did all of
+the heavy lifting in creating the actual traversals.
 
 ## Introduction
 
