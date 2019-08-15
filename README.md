@@ -231,22 +231,26 @@ One significant deviation from the way Python's slices work is that in Python
 if you assign a list of a different size to a slice then the original list will
 be expanded or contracted to accomodate the size of the assigned slice:
 
-    >>> xs = [1,2,3,4,5]
-    >>> xs[2:4] = [10,11,12,13,14,15]
-    >>> xs
-    [1, 2, 10, 11, 12, 13, 14, 15, 5]
-    >>> xs[2:8] = [100]
-    >>> xs
-    [1, 2, 100, 5]
+```python
+>>> xs = [1,2,3,4,5]
+>>> xs[2:4] = [10,11,12,13,14,15]
+>>> xs
+[1, 2, 10, 11, 12, 13, 14, 15, 5]
+>>> xs[2:8] = [100]
+>>> xs
+[1, 2, 100, 5]
+```
 
 Whereas with a Haskell traversal if you provide fewer elements than were
 targeted then fewer elements will be overwritten and if you provide more
 elements than were targeted the extra elements will be ignored:
 
-    λ> [1,2,3,4,5] & partsOf (sliced "2:4") .~ [10..15]
-    [1,2,10,11,5]
-    λ> [1,2,10,11,12,13,14,15,5] & partsOf (sliced "2:8") .~ [100]
-    [1,2,100,11,12,13,14,15,5]
+```haskell
+λ> [1,2,3,4,5] & partsOf (sliced "2:4") .~ [10..15]
+[1,2,10,11,5]
+λ> [1,2,10,11,12,13,14,15,5] & partsOf (sliced "2:8") .~ [100]
+[1,2,100,11,12,13,14,15,5]
+```
 
 In addition to assignment/replacement you can of course use all of usual
 suspects like `over` (`%~`) or the various lens helpers:
