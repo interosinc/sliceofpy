@@ -29,15 +29,6 @@ sd = QuasiQuoter
   , quoteType = unsupported "type"
   }
 
-isd :: QuasiQuoter
-isd = QuasiQuoter
-  { quoteExp  = handle
-      (\exp' -> [| isliced (exp' :: (Maybe Int, Maybe Int, Maybe Int)) |])
-  , quotePat  = unsupported "pattern"
-  , quoteDec  = unsupported "declaration"
-  , quoteType = unsupported "type"
-  }
-
 handle :: Monad m => ((Maybe Int, Maybe Int, Maybe Int) -> m a) -> String -> m a
 handle handler str = case parseSlice str of
   Just (_, _, Just 0) -> fail "Invalid step: 0"

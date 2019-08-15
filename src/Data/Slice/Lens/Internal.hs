@@ -12,6 +12,7 @@ import Control.Lens    ( (%%~)
                        , Reversing
                        , Traversal'
                        , _2
+                       , conjoined
                        , indexed
                        , indices
                        , partsOf
@@ -44,6 +45,19 @@ instance Slice String where
   end   s = end   (tupleSliceFromString s)
   step  s = step  (tupleSliceFromString s)
 
+sliced :: (Slice s, Traversable t) => s -> IndexedTraversal' Int (t a) a
+sliced s = conjoined (rsliced s) (isliced s)
+
+sliced' :: Traversable t
+        => Maybe Int -> Maybe Int -> Maybe Int -> IndexedTraversal' Int (t a) a
+sliced' start' end' step' = conjoined (rsliced' start' end' step') (isliced' start' end' step')
+
+rsliced :: (Slice s, Traversable t) => s -> Traversal' (t a) a
+rsliced s = sliced' (start s) (end s) (step s)
+
+rsliced' :: Traversable t => Maybe Int -> Maybe Int -> Maybe Int -> Traversal' (t a) a
+rsliced' start' end' step' = partsOf traversed . slice' start' end' step'
+
 isliced :: (Slice s, Traversable t) => s -> IndexedTraversal' Int (t a) a
 isliced s = isliced' (start s) (end s) (step s)
 
@@ -54,12 +68,6 @@ isliced' start' end' step' =
   where
     indexBy :: (a -> i) -> IndexedTraversal' i a a
     indexBy f p a = indexed p (f a) a
-
-sliced :: (Slice s, Traversable t) => s -> Traversal' (t a) a
-sliced s = sliced' (start s) (end s) (step s)
-
-sliced' :: Traversable t => Maybe Int -> Maybe Int -> Maybe Int -> Traversal' (t a) a
-sliced' start' end' step' = partsOf traversed . slice' start' end' step'
 
 tupleSliceFromString :: String -> (Maybe Int, Maybe Int, Maybe Int)
 tupleSliceFromString s = case splitOn ":" s of

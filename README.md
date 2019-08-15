@@ -60,9 +60,15 @@ written as `foo ^.. [sd|:5|]`.
 With the quasiquoted versions anything that doesn't parse
 as a valid slice (including step sizes of zero) will be caught at runtime.
 
-In addition to the `sliced` function and the `sd` quasiquoter there are also
-the `isliced` function and the `isd` quasiquoter which provide
-`IndexedTraversal`s.
+The `sliced` traversal is an IndexedTraversal but it is created by conjoining
+the actual indexed traversal and an non-indexed version so if the index ends up
+being used it switches to the indexed version but otherwise has the performance
+of the unindexed one.
+
+In addition to the `sliced` function generates an appropriate traversal from
+any instance of the `Slice` class, the `sliced'` function which generates an
+appropriate traversal from three individual `Int` parameters (start, send and
+step) is exposed.
 
 ## Differences from Python
 
@@ -221,10 +227,31 @@ putStr . drawTree . fmap show $ (tree & [sd|2:5|] .~ 100)
       `- 0
 ```
 
-and in addition to assignment/replacement you can of course use all of usual
+One significant deviation from the way Python's slices work is that in Python
+if you assign a list of a different size to a slice then the original list will
+be expanded or contracted to accomodate the size of the assigned slice:
+
+    >>> xs = [1,2,3,4,5]
+    >>> xs[2:4] = [10,11,12,13,14,15]
+    >>> xs
+    [1, 2, 10, 11, 12, 13, 14, 15, 5]
+    >>> xs[2:8] = [100]
+    >>> xs
+    [1, 2, 100, 5]
+
+Whereas with a Haskell traversal if you provide fewer elements than were
+targeted then fewer elements will be overwritten and if you provide more
+elements than were targeted the extra elements will be ignored:
+
+    λ> [1,2,3,4,5] & partsOf (sliced "2:4") .~ [10..15]
+    [1,2,10,11,5]
+    λ> [1,2,10,11,12,13,14,15,5] & partsOf (sliced "2:8") .~ [100]
+    [1,2,100,11,12,13,14,15,5]
+
+In addition to assignment/replacement you can of course use all of usual
 suspects like `over` (`%~`) or the various lens helpers:
 
-``` haskell
+```haskell
 λ> [1..10] & [sd|2:6|] %~ negate
 [1,2,-3,-4,-5,-6,7,8,9,10]
 
@@ -257,7 +284,5 @@ productOf [sd|2:5|] [1..10]
 ## TODOs
 
 * Documentation
-  - three (Maybe Int) param function (sliced') -- TODO: three direct int version?
   - better explain indexing differences with python
 * Figure out how to deploy to hackage (see http://hackage.haskell.org/upload).
-* Find/fix TODOs
