@@ -1,6 +1,6 @@
 # slice-of-py
 
-![Slice Of Py](https://github.com/Interosinc/sliceofpy/blob/master/misc/sliceofpy.png?raw=true "Slice of Py")
+![Slice Of Py](https://github.com/interosinc/sliceofpy/blob/master/misc/sliceofpy.png?raw=true "Slice of Py")
 
 > "So the pie isn't perfect? Cut it into wedges. Stay in control, and never panic."
 > - Martha Stewart
@@ -284,9 +284,3 @@ and of course you can chain on additional lens operations:
 productOf [sd|2:5|] [1..10]
   == 60
 ```
-
-## TODOs
-
-* Documentation
-  - better explain indexing differences with python
-* Figure out how to deploy to hackage (see http://hackage.haskell.org/upload).

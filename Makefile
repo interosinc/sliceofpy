@@ -4,6 +4,9 @@ help:
 build:
 	stack build
 
+cabal-build-in-docker:
+	docker build .
+
 test:
 	stack test
 
@@ -14,6 +17,7 @@ watch-test:
 	stack test --fast --file-watch
 
 b: build
+c: cabal-build-in-docker
 t: test
 w: watch
 wt: watch-test
