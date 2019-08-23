@@ -35,7 +35,6 @@ executables:
     source-dirs: misc
     ghc-options:
     - -Wall
-    - -Werror
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
@@ -49,7 +48,6 @@ tests:
     source-dirs:         test
     ghc-options:
     - -Wall
-    - -Werror
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
