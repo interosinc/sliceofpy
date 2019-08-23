@@ -74,6 +74,10 @@ step) is exposed.
 
 ### Slice Indices
 
+NB. The tables in this section do not display correctly on Hackage.  Please
+[view the README on Github](https://github.com/interosinc/sliceofpy/blob/master/README.md)
+to see them rendered properly.
+
 Many slice operations will work identically to their python counterparts, eg:
 
 | Python                                              | Haskell                                             |
