@@ -14,7 +14,7 @@ sdist:
 	stack sdist
 
 upload:
-	stack upload
+	stack upload .
 
 watch:
 	stack build --fast --file-watch
