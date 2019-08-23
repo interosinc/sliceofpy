@@ -10,6 +10,12 @@ cabal-build-in-docker:
 test:
 	stack test
 
+sdist:
+	stack sdist
+
+upload:
+	stack upload
+
 watch:
 	stack build --fast --file-watch
 
