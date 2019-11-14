@@ -1,4 +1,6 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Main where
 
@@ -19,6 +21,7 @@ import           Data.Slice.QQ                 ( s
                                                , sd
                                                )
 import           Data.Slice.QQ.Internal        ( handle )
+import           Data.Slice.TH
 import           Data.Tree                     ( Tree
                                                , flatten
                                                , unfoldTree
@@ -36,6 +39,25 @@ main = defaultMain . testGroup "Data.Slice.Lens" . pure
 
 spec_lens :: Spec
 spec_lens = do
+  describe "statically checked overloaded strings" $ do
+    let az = ['a'..'z']
+
+    describe "just start" $
+      it "should work" $
+       az ^.. sliced ($$("23:") :: (Maybe Int, Maybe Int, Maybe Int)) `shouldBe` "xyz"
+
+    describe "just end" $
+      it "should work" $
+       az ^.. sliced $$(":3") `shouldBe` "abc"
+
+    describe "just end + trailing" $
+      it "should work" $
+       az ^.. sliced $$(":3:") `shouldBe` "abc"
+
+    describe "start+end" $
+      it "should work" $
+       az ^.. sliced $$("3:6") `shouldBe` "def"
+
   describe "some QuasiQuotes" $ do
     let az = ['a'..'z']
 
